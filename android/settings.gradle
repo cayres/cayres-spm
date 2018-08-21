@@ -1,0 +1,3 @@
+rootProject.name = 'cedro_spm'
+
+include ':app'
