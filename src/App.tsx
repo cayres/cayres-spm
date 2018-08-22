@@ -1,13 +1,12 @@
-import React from 'react';
-import { Component } from 'react';
+import React from "react";
+import { Component } from "react";
 
-import { Hello } from "./components/Hello";
+import { Login } from "./pages/Login";
 
-type Props = {};
-export default class App extends Component<Props> {
-  render() {
+export default class App extends Component<{}> {
+  public render() {
     return (
-      <Hello name="World" enthusiasmLevel={1} />
+      <Login />
     );
   }
 }
