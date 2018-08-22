@@ -40,22 +40,22 @@ export class Login extends React.PureComponent<{}, IState> {
                         value={this.state.senha}
                         onChangeText={this.changeSenha}
                     />
-                    <View style={styles.textWithButton}>
-                        <Text>Ainda não possui cadastro?</Text>
-                        <TouchableHighlight
-                            style={styles.textButton}
-                            onPress={() => alert("teste")}
-                            underlayColor="#FFFFFF"
-                        >
-                            <Text style={{color: "#8FC74B" }}> Clique aqui!</Text>
-                        </TouchableHighlight>
-                    </View>
+                    <Button
+                        title="Entrar"
+                        onPress={() => console.log("Entrar...")}
+                        color="#2F4E78"
+                    />
                 </View>
-                <Button
-                    title="Entrar"
-                    onPress={() => console.log("Entrar...")}
-                    color="#2F4E78"
-                />
+                <View style={styles.textWithButton}>
+                    <Text>Ainda não possui cadastro?</Text>
+                    <TouchableHighlight
+                        style={styles.textButton}
+                        onPress={() => alert("teste")}
+                        underlayColor="#FFFFFF"
+                    >
+                        <Text style={{color: "#8FC74B" }}> Clique aqui!</Text>
+                    </TouchableHighlight>
+                </View>
             </View>
         );
     }
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
         width: 300,
         maxHeight: 50,
         color: "#2F4E78",
+        marginBottom: 10,
     },
     textWithButton: {
         flexDirection: "row",
