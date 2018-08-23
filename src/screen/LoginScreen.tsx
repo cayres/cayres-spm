@@ -1,25 +1,34 @@
 import React from "react";
 import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
+import { NavigationScreenProp } from "react-navigation";
 
 import {Logo} from "../components/Logo";
 
-interface IState {
-    login: string;
-    senha: string;
+interface IProp {
+    navigation: NavigationScreenProp<any, any>;
 }
 
-export class Login extends React.PureComponent<{}, IState> {
+interface IState {
+    email: string;
+    password: string;
+}
 
-    constructor(props: any) {
+export class LoginScreen extends React.PureComponent<IProp, IState> {
+
+    public static navigationOptions = {
+        header: <View />,
+    };
+
+    constructor(props: IProp) {
         super(props);
 
         this.state = {
-            login: "",
-            senha: "",
+            email: "",
+            password: "",
         };
 
-        this.changeLogin = this.changeLogin.bind(this);
-        this.changeSenha = this.changeSenha.bind(this);
+        this.changeEmail = this.changeEmail.bind(this);
+        this.changePassword = this.changePassword.bind(this);
     }
 
     public render(): React.ReactNode {
@@ -29,43 +38,44 @@ export class Login extends React.PureComponent<{}, IState> {
                 <View style={styles.form}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Login"
-                        value={this.state.login}
-                        onChangeText={this.changeLogin}
+                        placeholder="E-mail"
+                        value={this.state.email}
+                        onChangeText={this.changeEmail}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Senha"
                         secureTextEntry={true}
-                        value={this.state.senha}
-                        onChangeText={this.changeSenha}
+                        value={this.state.password}
+                        onChangeText={this.changePassword}
                     />
                     <Button
                         title="Entrar"
                         onPress={() => console.log("Entrar...")}
                         color="#2F4E78"
+                        accessibilityLabel="Entrar"
                     />
                 </View>
                 <View style={styles.textWithButton}>
                     <Text>Ainda não possui cadastro?</Text>
                     <TouchableHighlight
                         style={styles.textButton}
-                        onPress={() => alert("teste")}
+                        onPress={() => this.props.navigation.navigate("Register")}
                         underlayColor="#FFFFFF"
                     >
-                        <Text style={{color: "#8FC74B" }}> Clique aqui!</Text>
+                        <Text style={{color: "#8FC74B" }}> Crie sua conta.</Text>
                     </TouchableHighlight>
                 </View>
             </View>
         );
     }
 
-    private changeLogin(login: string): void {
-        this.setState({login});
+    private changeEmail(email: string): void {
+        this.setState({email});
     }
 
-    private changeSenha(senha: string): void {
-        this.setState({senha});
+    private changePassword(password: string): void {
+        this.setState({password});
     }
 }
 
