@@ -1,32 +1,36 @@
 import React from "react";
-import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
+import { Button, StyleSheet, TextInput, View } from "react-native";
 import { NavigationScreenProp } from "react-navigation";
 
 import {Logo} from "../components/Logo";
+import {isValidPassword, PasswordCreator} from "../components/PasswordCreator";
 
-interface IProp {
-    navigation: NavigationScreenProp<any, any>;
-}
-
-interface IState {
+export interface IRegisterState {
+    name: string;
     email: string;
     password: string;
 }
 
-export class LoginScreen extends React.PureComponent<IProp, IState> {
+interface IRegisterProps {
+    navigation: NavigationScreenProp<any, any>;
+}
+
+export class RegisterScreen extends React.PureComponent<IRegisterProps, IRegisterState> {
 
     public static navigationOptions = {
-        header: <View />,
+        title: "CRIAR CONTA",
     };
 
-    constructor(props: IProp) {
+    constructor(props: IRegisterProps) {
         super(props);
 
         this.state = {
+            name: "",
             email: "",
             password: "",
         };
 
+        this.changeName = this.changeName.bind(this);
         this.changeEmail = this.changeEmail.bind(this);
         this.changePassword = this.changePassword.bind(this);
     }
@@ -34,48 +38,46 @@ export class LoginScreen extends React.PureComponent<IProp, IState> {
     public render(): React.ReactNode {
         return (
             <View style={styles.container}>
-                <Logo />
+            <Logo />
                 <View style={styles.form}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nome"
+                        value={this.state.name}
+                        onChangeText={this.changeName}
+                    />
                     <TextInput
                         style={styles.input}
                         placeholder="E-mail"
                         value={this.state.email}
                         onChangeText={this.changeEmail}
                     />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Senha"
-                        secureTextEntry={true}
+                    <PasswordCreator
+                        textInputStyle={styles.input}
                         value={this.state.password}
                         onChangeText={this.changePassword}
                     />
-                    <Button
-                        title="Entrar"
-                        onPress={() => console.log("Entrar...")}
-                        color="#2F4E78"
-                        accessibilityLabel="Entrar"
-                    />
                 </View>
-                <View style={styles.textWithButton}>
-                    <Text>Ainda não possui cadastro?</Text>
-                    <TouchableHighlight
-                        style={styles.textButton}
-                        onPress={() => this.props.navigation.navigate("Register")}
-                        underlayColor="#FFFFFF"
-                    >
-                        <Text style={{color: "#8FC74B" }}> Crie sua conta.</Text>
-                    </TouchableHighlight>
-                </View>
+                <Button
+                    title="Registrar"
+                    onPress={() => console.log("Entrar...")}
+                    color="#2F4E78"
+                    accessibilityLabel="Registrar"
+                />
             </View>
         );
     }
 
-    private changeEmail(email: string): void {
-        this.setState({email});
-    }
-
     private changePassword(password: string): void {
         this.setState({password});
+    }
+
+    private changeName(name: string): void {
+        this.setState({name});
+    }
+
+    private changeEmail(email: string): void {
+        this.setState({email});
     }
 }
 
@@ -95,7 +97,6 @@ const styles = StyleSheet.create({
         width: 300,
         maxHeight: 50,
         color: "#2F4E78",
-        marginBottom: 10,
     },
     textWithButton: {
         flexDirection: "row",
@@ -103,4 +104,4 @@ const styles = StyleSheet.create({
     textButton: {
 
     },
-  });
+});

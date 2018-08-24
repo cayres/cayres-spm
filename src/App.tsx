@@ -2,8 +2,8 @@ import React from "react";
 import { Component } from "react";
 import { createStackNavigator } from "react-navigation";
 
-import { LoginScreen } from "./screen/LoginScreen";
-import { RegisterScreen } from "./screen/RegisterScreen";
+import { LoginScreen } from "./screens/LoginScreen";
+import { RegisterScreen } from "./screens/RegisterScreen";
 
 const RootStack = createStackNavigator(
   {
