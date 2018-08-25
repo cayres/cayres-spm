@@ -1,9 +1,11 @@
 import React from "react";
 import { Component } from "react";
 import { createStackNavigator } from "react-navigation";
+import { Provider } from "react-redux";
 
-import { LoginScreen } from "./screens/LoginScreen";
+import LoginScreen from "./screens/LoginScreen";
 import { RegisterScreen } from "./screens/RegisterScreen";
+import store from "./store";
 
 const RootStack = createStackNavigator(
   {
@@ -26,7 +28,9 @@ const RootStack = createStackNavigator(
 export default class App extends Component<{}> {
   public render() {
     return (
-      <RootStack />
+      <Provider store={store}>
+        <RootStack />
+      </Provider>
     );
   }
 }

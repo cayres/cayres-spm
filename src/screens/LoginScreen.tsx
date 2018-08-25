@@ -1,25 +1,47 @@
+// node_modules
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import React from "react";
 import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
 import { NavigationScreenProp } from "react-navigation";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
 
+// modules
+import { AuthenticationState } from "../store/authentication";
+import { loginError, loginSuccess } from "../store/authentication/actions";
+import { httpRequest } from "../util";
+
+// components
 import {Logo} from "../components/Logo";
+import { ApplicationState } from "../store";
 
 interface IProp {
     navigation: NavigationScreenProp<any, any>;
 }
+
+interface PropsFromState {
+    errors: string;
+}
+
+interface PropsFromDispatch {
+    loginError: typeof loginError;
+    loginSuccess: typeof loginSuccess;
+}
+
+type AllProps = IProp & PropsFromDispatch & PropsFromState;
 
 export interface ILoginState {
     email: string;
     password: string;
 }
 
-export class LoginScreen extends React.PureComponent<IProp, ILoginState> {
+class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
 
     public static navigationOptions = {
         header: <View />,
     };
 
-    constructor(props: IProp) {
+    constructor(props: AllProps) {
         super(props);
 
         this.state = {
@@ -29,9 +51,15 @@ export class LoginScreen extends React.PureComponent<IProp, ILoginState> {
 
         this.changeEmail = this.changeEmail.bind(this);
         this.changePassword = this.changePassword.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     public render(): React.ReactNode {
+
+        const { errors } = this.props;
+        console.log(errors);
+        const err = errors ? <Text style={{color: "red"}}>{errors}</Text> : false;
+
         return (
             <View style={styles.container}>
                 <Logo />
@@ -49,9 +77,10 @@ export class LoginScreen extends React.PureComponent<IProp, ILoginState> {
                         value={this.state.password}
                         onChangeText={this.changePassword}
                     />
+                    {err}
                     <Button
                         title="Entrar"
-                        onPress={() => console.log("Entrar...")}
+                        onPress={this.handleClick}
                         color="#2F4E78"
                         accessibilityLabel="Entrar"
                     />
@@ -71,11 +100,31 @@ export class LoginScreen extends React.PureComponent<IProp, ILoginState> {
     }
 
     private changeEmail(email: string): void {
-        this.setState({email});
+        this.setState({email: email.trim()});
     }
 
     private changePassword(password: string): void {
-        this.setState({password});
+        this.setState({password: password.trim()});
+    }
+
+    private handleClick(): void {
+        const { loginError, loginSuccess, navigation } = this.props;
+
+        const request: AxiosRequestConfig = {
+            method: "POST",
+            url: "login",
+            data: this.state,
+        };
+
+        const onSuccess = (response: AxiosResponse) => {
+            loginSuccess(response.data.token);
+        };
+
+        const onErr = (erro: AxiosError) => {
+            loginError("Usuário ou senha inválido!");
+        };
+
+        httpRequest(request, onSuccess, onErr);
     }
 }
 
@@ -103,4 +152,11 @@ const styles = StyleSheet.create({
     textButton: {
 
     },
-  });
+});
+
+const mapStateToProps = (state: ApplicationState) => ({
+    errors: state.authentication.errors,
+});
+const mapDistpachToProps = (dispach: Dispatch) => bindActionCreators({ loginError, loginSuccess }, dispach);
+
+export default connect(mapStateToProps, mapDistpachToProps)(LoginScreen);

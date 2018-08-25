@@ -14,7 +14,7 @@ export const isValidPassword = (password: string) => {
 export const PasswordCreator: React.SFC<IPasswordProps> = (props) => {
     const {textInputStyle, value, onChangeText} = props;
 
-    // const alert = isValidPassword(value)  ? false : <Image source={require("../assets/report_problem.png")} />;
+    const alert = isValidPassword(value)  ? false : <Image source={require("../assets/report_problem.png")} />;
 
     return (
         <View>
@@ -25,8 +25,9 @@ export const PasswordCreator: React.SFC<IPasswordProps> = (props) => {
                 onChangeText={onChangeText}
                 style={textInputStyle}
             />
-            <View style={{flexDirection: "row", width: 270 }}>
+            <View style={{flexDirection: "row", width: 250 }}>
                 <Text style={{fontSize: 12 }}>{"Use oito ou mais caracteres com uma combinação de letras, números e símbolos "}</Text>
+                {alert}
                 <Text>{`8/${value.length} `}</Text>
             </View>
         </View>
