@@ -2,7 +2,7 @@ import { Reducer } from "redux";
 import { AuthenticationActionTypes, AuthenticationState } from "./types";
 
 const initialState: AuthenticationState = {
-    token: "e3d0ec74-3706-4718-9d90-91640e478f96",
+    token: "2b932814-5b00-4afd-9e26-5f7897780beb",
     errors: undefined,
     loading: false,
 };

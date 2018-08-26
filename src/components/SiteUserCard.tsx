@@ -1,18 +1,26 @@
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { Card } from "react-native-material-ui";
+import { Button, Card } from "react-native-material-ui";
 
 interface SUCardProps {
     token: string;
     url: string;
     user: string;
+    id: number;
+    password: string;
 }
 
-const SiteUserCard: React.SFC<SUCardProps> = (props) => {
+interface Actions {
+    handleEdit: (value: SUCardProps) => void;
+    handleDelete: (id: number) => void;
+}
+
+const SiteUserCard: React.SFC<SUCardProps & Actions> = (props) => {
 
     const {token, url, user} = props;
+    const {handleEdit, handleDelete, ...value} = props;
 
-    const site = url.split("://")[1];
+    const site = url.indexOf("://") > -1 ? url.split("://")[1] : url;
 
     return (
         <Card>
@@ -31,27 +39,43 @@ const SiteUserCard: React.SFC<SUCardProps> = (props) => {
                     <Text style={styles.siteText}>{site.toLocaleLowerCase()}</Text>
                     <Text style={styles.userText}>{user}</Text>
                 </View>
+                <View style={styles.buttonView}>
+                    <Button
+                        text=""
+                        icon="edit"
+                        style={{text: styles.siteText}}
+                        onPress={() => handleEdit(value)}
+                    />
+                    <Button
+                        text=""
+                        icon="delete"
+                        style={{text: styles.siteText}}
+                        onPress={() => handleDelete(value.id)}
+                    />
+                </View>
             </View>
         </Card>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
     box: {
         padding: 5,
-        flexDirection: "row",
-        alignContent: "center",
         alignItems: "center",
+        flexDirection: "row",
     },
     image: {
         width: 50,
         height: 50,
         resizeMode: "contain",
     },
-    textView: {paddingLeft: 20, alignSelf: "center"},
+    textView: {
+        alignItems: "center",
+        flex: 1,
+    },
+    buttonView: {
+        width: 75,
+    },
     siteText: {color: "#2F4E78", fontSize: 12},
     userText: {color: "#2F4E78", fontSize: 18},
 });
