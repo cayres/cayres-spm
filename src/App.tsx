@@ -3,14 +3,16 @@ import { Component } from "react";
 import { createStackNavigator } from "react-navigation";
 import { Provider } from "react-redux";
 
+import HomeScreen from "./screens/HomeScreen";
 import LoginScreen from "./screens/LoginScreen";
-import { RegisterScreen } from "./screens/RegisterScreen";
+import RegisterScreen from "./screens/RegisterScreen";
 import store from "./store";
 
 const RootStack = createStackNavigator(
   {
     Login: LoginScreen,
     Register: RegisterScreen,
+    Home: HomeScreen,
   },
   {
     initialRouteName: "Login",

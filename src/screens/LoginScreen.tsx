@@ -7,11 +7,11 @@ import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
 
 // modules
-import { AuthenticationState } from "../store/authentication";
 import { loginError, loginSuccess } from "../store/authentication/actions";
 import { httpRequest } from "../util";
 
 // components
+import {EmailInput} from "../components/EmailInput";
 import {Logo} from "../components/Logo";
 import { ApplicationState } from "../store";
 
@@ -63,10 +63,10 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
         return (
             <View style={styles.container}>
                 <Logo />
+                {err}
                 <View style={styles.form}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="E-mail"
+                    <EmailInput
+                        textInputStyle={styles.input}
                         value={this.state.email}
                         onChangeText={this.changeEmail}
                     />
@@ -77,7 +77,6 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
                         value={this.state.password}
                         onChangeText={this.changePassword}
                     />
-                    {err}
                     <Button
                         title="Entrar"
                         onPress={this.handleClick}
@@ -118,10 +117,16 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
 
         const onSuccess = (response: AxiosResponse) => {
             loginSuccess(response.data.token);
+            navigation.push("Home");
         };
 
         const onErr = (erro: AxiosError) => {
-            loginError("Usuário ou senha inválido!");
+            if (erro.response) {
+                const data = erro.response.data;
+                loginError(`${data.message}. ${(data.errors || []).join(",")}`);
+                return;
+            }
+            loginError(erro.message);
         };
 
         httpRequest(request, onSuccess, onErr);

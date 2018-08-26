@@ -1,9 +1,17 @@
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import React from "react";
-import { Button, StyleSheet, TextInput, View } from "react-native";
+import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { NavigationScreenProp } from "react-navigation";
+import { connect } from "react-redux";
+import { bindActionCreators, Dispatch } from "redux";
 
+import { ApplicationState } from "../store";
+import { loginError, loginSuccess } from "../store/authentication/actions";
+
+import {EmailInput, isValidEmail} from "../components/EmailInput";
 import {Logo} from "../components/Logo";
 import {isValidPassword, PasswordCreator} from "../components/PasswordCreator";
+import { httpRequest } from "../util";
 
 export interface IRegisterState {
     name: string;
@@ -11,17 +19,34 @@ export interface IRegisterState {
     password: string;
 }
 
-interface IRegisterProps {
+interface RegisterProps {
     navigation: NavigationScreenProp<any, any>;
 }
 
-export class RegisterScreen extends React.PureComponent<IRegisterProps, IRegisterState> {
+interface PropsFromState {
+    errors: string;
+}
+
+interface PropsFromDispatch {
+    loginError: typeof loginError;
+    loginSuccess: typeof loginSuccess;
+}
+
+interface ErroResponse {
+    type?: string;
+    message: string;
+    errors?: any;
+}
+
+type AllProps = RegisterProps & PropsFromDispatch & PropsFromState;
+
+class RegisterScreen extends React.PureComponent<AllProps, IRegisterState> {
 
     public static navigationOptions = {
         title: "CRIAR CONTA",
     };
 
-    constructor(props: IRegisterProps) {
+    constructor(props: AllProps) {
         super(props);
 
         this.state = {
@@ -33,36 +58,44 @@ export class RegisterScreen extends React.PureComponent<IRegisterProps, IRegiste
         this.changeName = this.changeName.bind(this);
         this.changeEmail = this.changeEmail.bind(this);
         this.changePassword = this.changePassword.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     public render(): React.ReactNode {
+        const { email, name, password } = this.state;
+        const  {errors} = this.props;
+        const disabled = !(isValidEmail(email) && isValidPassword(password) && name.trim() !== "");
+
+        const err = errors ? <Text style={{color: "red", width: 300}}>{errors}</Text> : false;
+
         return (
             <View style={styles.container}>
-            <Logo />
+                <Logo />
+                {err}
                 <View style={styles.form}>
                     <TextInput
                         style={styles.input}
                         placeholder="Nome"
-                        value={this.state.name}
+                        value={name}
                         onChangeText={this.changeName}
                     />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="E-mail"
-                        value={this.state.email}
+                    <EmailInput
+                        textInputStyle={styles.input}
+                        value={email}
                         onChangeText={this.changeEmail}
                     />
                     <PasswordCreator
                         textInputStyle={styles.input}
-                        value={this.state.password}
+                        value={password}
                         onChangeText={this.changePassword}
                     />
                 </View>
                 <Button
                     title="Registrar"
-                    onPress={() => console.log("Entrar...")}
+                    onPress={this.handleClick}
                     color="#2F4E78"
                     accessibilityLabel="Registrar"
+                    disabled={disabled}
                 />
             </View>
         );
@@ -78,6 +111,30 @@ export class RegisterScreen extends React.PureComponent<IRegisterProps, IRegiste
 
     private changeEmail(email: string): void {
         this.setState({email});
+    }
+
+    private handleClick() {
+        const { loginError, loginSuccess, navigation } = this.props;
+
+        const request: AxiosRequestConfig = {
+            method: "POST",
+            url: "register",
+            data: this.state,
+        };
+
+        const onSuccess = (response: AxiosResponse) => {
+            loginSuccess(response.data.token);
+            navigation.push("Home");
+        };
+
+        const onErr = (erro: AxiosError) => {
+            if (erro.response) {
+                const data = erro.response.data;
+                loginError(`${data.message}. ${(data.errors || []).join(",")}`);
+            }
+        };
+
+        httpRequest(request, onSuccess, onErr);
     }
 }
 
@@ -101,7 +158,11 @@ const styles = StyleSheet.create({
     textWithButton: {
         flexDirection: "row",
     },
-    textButton: {
-
-    },
 });
+
+const mapStateToProps = (state: ApplicationState) => ({
+    errors: state.authentication.errors,
+});
+const mapDistpachToProps = (dispach: Dispatch) => bindActionCreators({ loginError, loginSuccess }, dispach);
+
+export default connect(mapStateToProps, mapDistpachToProps)(RegisterScreen);

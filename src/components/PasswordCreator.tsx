@@ -26,9 +26,9 @@ export const PasswordCreator: React.SFC<IPasswordProps> = (props) => {
                 style={textInputStyle}
             />
             <View style={{flexDirection: "row", width: 250 }}>
-                <Text style={{fontSize: 12 }}>{"Use oito ou mais caracteres com uma combinação de letras, números e símbolos "}</Text>
+                <Text style={{fontSize: 12 }}>{"Use dez ou mais caracteres com uma combinação de letras, números e símbolos "}</Text>
                 {alert}
-                <Text>{`8/${value.length} `}</Text>
+                <Text>{`10/${value.length} `}</Text>
             </View>
         </View>
     );
