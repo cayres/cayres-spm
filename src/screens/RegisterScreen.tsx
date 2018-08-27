@@ -123,7 +123,7 @@ class RegisterScreen extends React.PureComponent<AllProps, IRegisterState> {
         };
 
         const onSuccess = (response: AxiosResponse) => {
-            loginSuccess(response.data.token);
+            loginSuccess(response.data.token, this.state.email);
             navigation.push("Home");
         };
 

@@ -5,11 +5,15 @@ import { FlatList, Modal, StyleSheet, Text, TouchableHighlight, View } from "rea
 import { ActionButton } from "react-native-material-ui";
 import { NavigationScreenProp } from "react-navigation";
 import { connect } from "react-redux";
-
+import { bindActionCreators, Dispatch } from "redux";
 import { ApplicationState } from "../store";
+
+import { addInfo, changeInfo, fechList, removeInfo } from "../store/passwords/actions";
 
 import SiteUserCard from "../components/SiteUserCard";
 import SiteUserModal, { SUModalState } from "../components/SiteUserModal";
+import { SiteUserPassword } from "../store/passwords";
+import { getSecurityPasswordList } from "../util";
 
 interface IProp {
     navigation: NavigationScreenProp<any, any>;
@@ -17,13 +21,21 @@ interface IProp {
 
 interface PropsFromState {
     token: string;
+    data: SiteUserPassword[];
+    email: string;
 }
 
-type AllProps = IProp & PropsFromState;
+interface Actions {
+    addInfo: typeof addInfo;
+    changeInfo: typeof changeInfo;
+    removeInfo: typeof removeInfo;
+    fechList: typeof fechList;
+}
+
+type AllProps = IProp & PropsFromState & Actions;
 
 export interface HomeState {
     modalVisible: boolean;
-    data: SUModalState[];
 }
 
 class HomeScreen extends React.PureComponent<AllProps, HomeState> {
@@ -39,20 +51,22 @@ class HomeScreen extends React.PureComponent<AllProps, HomeState> {
 
         this.state = {
             modalVisible: false,
-            data: [
-                {id: 1, url: "http://facebook.com", user: "rodrigo", password: "123456"},
-                {id: 2, url: "http://globo.com", user: "rodrigo", password: "123456"},
-            ],
         };
 
         this.handleSave = this.handleSave.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
 
+    public componentDidMount() {
+        getSecurityPasswordList().then((value) => {
+            this.props.fechList(value);
+        });
+
+    }
+
     public render(): React.ReactNode {
 
-        const { token } = this.props;
-        const { data } = this.state;
+        const { token, data } = this.props;
 
         return (
             <View style={styles.container}>
@@ -86,18 +100,19 @@ class HomeScreen extends React.PureComponent<AllProps, HomeState> {
     }
 
     private handleSave(value: SUModalState) {
-        const { data: dataState } = this.state;
+        const { data: dataState, addInfo, changeInfo, email } = this.props;
 
         if (_.isEmpty(value.password) || _.isEmpty(value.url) || _.isEmpty(value.user) ) {
             this.modal.open(value);
             return;
         }
 
-        const data = _.cloneDeep(dataState);
+        const data = _.cloneDeep(dataState) as SiteUserPassword[];
+
+        value = value as SiteUserPassword;
 
         if (data.length === 0) {
-            data.push({...value, id: 1});
-            this.setState({data});
+            addInfo({password: value.password!, url: value.url!, user: value.user!, id: 1}, email);
             return;
         }
 
@@ -106,8 +121,8 @@ class HomeScreen extends React.PureComponent<AllProps, HomeState> {
         });
 
         if (index > -1) {
-            data.splice(index, 1, value);
-            this.setState({data});
+            const updatedValue = {password: value.password!, url: value.url!, user: value.user!, id: value.id!};
+            changeInfo(updatedValue, index, email);
             return;
         }
 
@@ -115,19 +130,13 @@ class HomeScreen extends React.PureComponent<AllProps, HomeState> {
             return prev > curr.id! ? prev : curr.id!;
         }, 0);
 
-        data.push({...value, id: maxId + 1});
-
-        this.setState({data});
+        addInfo({password: value.password!, url: value.url!, user: value.user!, id: maxId + 1}, email);
     }
 
     private handleDelete(id: number): void {
-        let { data } = this.state;
+        const { data, email, removeInfo } = this.props;
 
-        data = data.filter((item) => {
-            return item.id !== id;
-        });
-
-        this.setState({data});
+        removeInfo(id, email);
     }
 }
 
@@ -140,8 +149,10 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state: ApplicationState) => ({
     token: state.authentication.token,
+    email: state.authentication.email,
+    data: state.passwords,
 });
 
-// const mapDistpachToProps = (dispach: Dispatch) => bindActionCreators({ loginError, loginSuccess }, dispach);
+const mapDistpachToProps = (dispach: Dispatch) => bindActionCreators({ fechList, addInfo, changeInfo, removeInfo }, dispach);
 
-export default connect(mapStateToProps, undefined)(HomeScreen);
+export default connect(mapStateToProps, mapDistpachToProps)(HomeScreen);

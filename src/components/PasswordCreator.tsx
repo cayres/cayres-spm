@@ -19,14 +19,14 @@ export const PasswordCreator: React.SFC<IPasswordProps> = (props) => {
     return (
         <View>
             <TextInput
-                placeholder="Senha"
+                placeholder="Password"
                 secureTextEntry={true}
                 value={value}
                 onChangeText={onChangeText}
                 style={textInputStyle}
             />
             <View style={{flexDirection: "row", width: 250 }}>
-                <Text style={{fontSize: 12 }}>{"Use dez ou mais caracteres com uma combinação de letras, números e símbolos "}</Text>
+                <Text style={{fontSize: 12 }}>{"The password must be at least 10 characters long and contains a combination of letters, numbers and symbols "}</Text>
                 {alert}
                 <Text>{`10/${value.length} `}</Text>
             </View>

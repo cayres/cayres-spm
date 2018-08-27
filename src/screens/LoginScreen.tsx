@@ -1,8 +1,14 @@
 // node_modules
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import React from "react";
-import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
-
+import { Platform , StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
+// @ts-ignore
+import FingerprintScanner from "react-native-fingerprint-scanner";
+import * as Keychain from "react-native-keychain";
+import { UserCredentials } from "react-native-keychain";
+import { Button } from "react-native-material-ui";
+// @ts-ignore
+import RNSecureKeyStore from "react-native-secure-key-store";
 import { NavigationScreenProp } from "react-navigation";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";
@@ -13,10 +19,11 @@ import { httpRequest } from "../util";
 
 // components
 import {EmailInput} from "../components/EmailInput";
+import FingerprintModal from "../components/FingerprintModal";
 import {Logo} from "../components/Logo";
 import { ApplicationState } from "../store";
 
-interface IProp {
+interface Prop {
     navigation: NavigationScreenProp<any, any>;
 }
 
@@ -29,14 +36,18 @@ interface PropsFromDispatch {
     loginSuccess: typeof loginSuccess;
 }
 
-type AllProps = IProp & PropsFromDispatch & PropsFromState;
+type AllProps = Prop & PropsFromDispatch & PropsFromState;
 
 export interface ILoginState {
     email: string;
     password: string;
 }
 
-class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
+export interface FingerState {
+    showFingerprintPopup: boolean;
+}
+
+class LoginScreen extends React.PureComponent<AllProps, ILoginState & FingerState> {
 
     public static navigationOptions = {
         header: <View />,
@@ -48,22 +59,63 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
         this.state = {
             email: "",
             password: "",
+            showFingerprintPopup: false,
         };
 
         this.changeEmail = this.changeEmail.bind(this);
         this.changePassword = this.changePassword.bind(this);
         this.handleClick = this.handleClick.bind(this);
+        this.login = this.login.bind(this);
+        this.scannerRelease = this.scannerRelease.bind(this);
+    }
+
+    public componentDidMount() {
+        FingerprintScanner.isSensorAvailable().then(() => {
+            Keychain.getGenericPassword()
+                .then((credentials) => {
+
+                    if (!credentials) {
+                        return;
+                    }
+
+                    this.setState({showFingerprintPopup: true}, () => {
+                        const {username, password} = credentials as UserCredentials;
+                        FingerprintScanner
+                            .authenticate({ onAttempt: (erro: any) => alert(erro.message)})
+                            .then(() => {
+                                this.setState({showFingerprintPopup: false});
+                                this.login(username, password);
+                            })
+                            .catch((error: any) => {
+                                alert(error.message);
+                            });
+                    });
+
+                })
+                .catch((error: any) => {
+                    alert(error.message);
+                });
+
+        }).catch(() => {
+            this.setState({showFingerprintPopup: false});
+        });
+    }
+
+    public componentWillUnmount() {
+        this.scannerRelease();
     }
 
     public render(): React.ReactNode {
 
         const { errors } = this.props;
+        const { showFingerprintPopup } = this.state;
         console.log(errors);
         const err = errors ? <Text style={{color: "red"}}>{errors}</Text> : false;
 
         return (
             <View style={styles.container}>
                 <Logo />
+                <FingerprintModal visible={showFingerprintPopup} onRequestClose={this.scannerRelease} />
                 {err}
                 <View style={styles.form}>
                     <EmailInput
@@ -79,16 +131,14 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
                         onChangeText={this.changePassword}
                     />
                     <Button
-                        title="Entrar"
+                        text="Entrar"
                         onPress={this.handleClick}
-                        color="#2F4E78"
-                        accessibilityLabel="Entrar"
+                        style={ {container: {backgroundColor: "#2F4E78"}, text: {color: "#FFFFFF"}}}
                     />
                 </View>
                 <View style={styles.textWithButton}>
                     <Text>Ainda não possui cadastro?</Text>
                     <TouchableHighlight
-                        style={styles.textButton}
                         onPress={() => this.props.navigation.navigate("Register")}
                         underlayColor="#FFFFFF"
                     >
@@ -97,6 +147,13 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
                 </View>
             </View>
         );
+    }
+
+    private scannerRelease() {
+        if (Platform.OS === "android") {
+            FingerprintScanner.release();
+        }
+        this.setState({showFingerprintPopup: false});
     }
 
     private changeEmail(email: string): void {
@@ -108,17 +165,57 @@ class LoginScreen extends React.PureComponent<AllProps, ILoginState> {
     }
 
     private handleClick(): void {
+        const {email, password} = this.state;
+        this.login(email, password);
+    }
+
+    private login(email: string, password: string): void {
         const { loginError, loginSuccess, navigation } = this.props;
 
         const request: AxiosRequestConfig = {
             method: "POST",
             url: "login",
-            data: this.state,
+            data: {email, password},
         };
 
-        const onSuccess = (response: AxiosResponse) => {
-            loginSuccess(response.data.token);
-            navigation.push("Home");
+        const onSuccess = async (response: AxiosResponse) => {
+            console.log(Keychain);
+
+            try {
+                const genericPassword = await Keychain.getGenericPassword();
+                if (!genericPassword) {
+                    const saved = await Keychain.setGenericPassword(email, password);
+                    console.log(saved);
+                    if (saved) {
+                        FingerprintScanner.isSensorAvailable().then(() => {
+
+                            const genericPassword = Keychain.getGenericPassword();
+                            if (!genericPassword) {
+                                return;
+                            }
+                            FingerprintScanner
+                            .authenticate({ onAttempt: (erro: any) => alert(erro.message)})
+                            .then(() => {
+                                this.setState({showFingerprintPopup: false});
+                                loginSuccess(response.data.token, email);
+                                this.props.navigation.push("Home");
+                            })
+                            .catch((error: any) => {
+                                alert(error.message);
+                            });
+                        }).catch(() => {
+                            this.setState({showFingerprintPopup: false});
+                        });
+                        this.setState({showFingerprintPopup: true});
+                        return;
+                    }
+                }
+                loginSuccess(response.data.token, email);
+                navigation.push("Home");
+
+            } catch (error) {
+                alert(error.message);
+            }
         };
 
         const onErr = (erro: AxiosError) => {
@@ -154,9 +251,6 @@ const styles = StyleSheet.create({
     },
     textWithButton: {
         flexDirection: "row",
-    },
-    textButton: {
-
     },
 });
 

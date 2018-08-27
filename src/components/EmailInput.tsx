@@ -42,6 +42,7 @@ export class EmailInput extends React.PureComponent<EmailProps, EmailState> {
                     style={valid ? textInputStyle : [textInputStyle, {color: "red"}]}
                     onBlur={this.onHandleBlur}
                     onFocus={this.onHandleFocus}
+                    autoCapitalize="none"
                 />
                 {erro}
             </View>
