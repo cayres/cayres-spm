@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import store from "../store";
 import { API_URI } from "./constants";
+import RNSecureKeyStore from "react-native-secure-key-store";
 
 type SuccessCallback = (response: AxiosResponse) => void;
 

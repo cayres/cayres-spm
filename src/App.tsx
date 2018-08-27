@@ -15,7 +15,7 @@ const RootStack = createStackNavigator(
     Home: HomeScreen,
   },
   {
-    initialRouteName: "Home",
+    initialRouteName: "Login",
     navigationOptions: {
       headerStyle: {
         backgroundColor: "#2F4E78",

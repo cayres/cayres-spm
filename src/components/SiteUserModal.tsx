@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, Modal, StyleSheet, TextInput, View } from "react-native";
+import { Clipboard, Image, Modal, StyleSheet, Text, TextInput, TimerMixin, View } from "react-native";
 import { Button } from "react-native-material-ui";
 
 interface SUModalProps {
@@ -19,6 +19,7 @@ export interface SUModalState {
 interface ModalState {
     security: boolean;
     visible: boolean;
+    showMessageCopy: boolean;
 }
 
 const INITIAL_STATE: SUModalState = {
@@ -30,12 +31,19 @@ const INITIAL_STATE: SUModalState = {
 
 class SiteUserModal extends React.PureComponent<SUModalProps, SUModalState & ModalState> {
 
+    private static mixins: TimerMixin;
+
+    private messageCopy: React.ReactElement<Text> = (
+        <Text onPress={() => this.setState({showMessageCopy: false})}>Password has been copied to clipboard!</Text>
+    );
+
     constructor(props: SUModalProps) {
         super(props);
         this.state = {
             ...INITIAL_STATE,
             security: true,
             visible: false,
+            showMessageCopy: false,
         };
 
         this.changeSecurity = this.changeSecurity.bind(this);
@@ -43,11 +51,12 @@ class SiteUserModal extends React.PureComponent<SUModalProps, SUModalState & Mod
         this.close = this.close.bind(this);
         this.onClickSave = this.onClickSave.bind(this);
         this.onClickDelete = this.onClickDelete.bind(this);
+        this.copyPasswordToClipboard = this.copyPasswordToClipboard.bind(this);
     }
 
     public render() {
         const { token } = this.props;
-        const { password, url, user, security, visible } = this.state;
+        const { password, url, user, security, visible, showMessageCopy } = this.state;
 
         const site = url!.indexOf("://") > -1 ? url!.split("://")[1] : url;
 
@@ -78,15 +87,17 @@ class SiteUserModal extends React.PureComponent<SUModalProps, SUModalState & Mod
                         />
                         <View style={styles.buttonView}>
                             <TextInput
-                                style={[styles.input, { width: 240 }]}
+                                style={[styles.input, { width: 175 }]}
                                 placeholder={"Password"}
                                 secureTextEntry={security}
                                 value={password}
                                 onChangeText={(text) => this.setState({password: text})}
                             />
                             <Button onPress={this.changeSecurity} text="" icon={security ? "visibility" : "visibility-off"} />
+                            <Button onPress={this.copyPasswordToClipboard} text="" icon="content-copy" />
                         </View>
                     </View>
+                    {showMessageCopy ? this.messageCopy : false}
                     <View style={styles.buttonView}>
                         <Button onPress={() => this.close()} text="" icon="arrow-back" />
                         <Button accent onPress={this.onClickDelete} text="" icon="delete" />
@@ -98,7 +109,7 @@ class SiteUserModal extends React.PureComponent<SUModalProps, SUModalState & Mod
     }
 
     public open(value?: SUModalState) {
-        this.setState({visible: true, ...value});
+        this.setState({visible: true, showMessageCopy: false, ...value});
     }
 
     public close() {
@@ -122,6 +133,12 @@ class SiteUserModal extends React.PureComponent<SUModalProps, SUModalState & Mod
         const { handleDelete } = this.props;
         this.close();
         handleDelete(id!);
+    }
+
+    private copyPasswordToClipboard() {
+        const { password } = this.state;
+        Clipboard.setString(password!);
+        this.setState({showMessageCopy: true});
     }
 }
 
