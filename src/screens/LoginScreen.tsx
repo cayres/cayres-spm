@@ -2,6 +2,7 @@
 import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import React from "react";
 import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from "react-native";
+
 import { NavigationScreenProp } from "react-navigation";
 import { connect } from "react-redux";
 import { bindActionCreators, Dispatch } from "redux";

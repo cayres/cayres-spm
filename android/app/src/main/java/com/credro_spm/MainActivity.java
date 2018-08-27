@@ -1,7 +1,6 @@
 package com.cedro_spm;
 
 import com.facebook.react.ReactActivity;
-import com.reactlibrary.securekeystore.RNSecureKeyStorePackage;
 
 public class MainActivity extends ReactActivity {
 
